@@ -22,5 +22,4 @@ void run_comandline(void){
             break;
         }
     }
-    printf("Goodbye!\n");
 }
