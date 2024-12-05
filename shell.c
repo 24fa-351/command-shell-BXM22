@@ -3,11 +3,13 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include "shell_functions.h"
 
 
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
-  shell_loop();
+  run_comandline();
+
   return EXIT_SUCCESS;
 }
