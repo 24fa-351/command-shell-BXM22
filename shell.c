@@ -2,36 +2,59 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <sys/wait.h>
+
 #include "shell_functions.h"
 
 #define MAX_INPUT_SIZE 1024
 #define MAX_TOKENS 100
 
+int main(int argc, char *argv[]) {
+    if (argc < 3) {
+        fprintf(stderr, "Usage: %s <outputFile> <command> [<arg1>, <arg2> ...]\n", argv[0]);
+        return 1;
+    }
 
+    char *output_file = argv[1];
+    char *command = argv[2];
+    char *args[MAX_TOKENS];
 
-int main() {
-    char input[MAX_INPUT_SIZE];
-    char *argv[MAX_TOKENS];
-    int argc;
+    args[0] = command;
+    for (int i = 3; i < argc; i++) {
+        args[i - 2] = argv[i];
+    }
+    args[argc - 2] = NULL;
 
-    while (1) {
-        printf("xsh# "); 
-        if (!fgets(input, MAX_INPUT_SIZE, stdin)) {
-            break; 
+    pid_t pid = fork();
+    if (pid < 0) {
+        perror("Fork failed");
+        return 1;
+    }
+
+    if (pid == 0) {
+        int out_fd = open(output_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        if (out_fd < 0) {
+            perror("Failed to open output file");
+            exit(EXIT_FAILURE);
         }
-        argc = 0;
-        char *token = strtok(input, " \t\n");
-        while (token && argc < MAX_TOKENS - 1) {
-            argv[argc++] = token;
-            token = strtok(NULL, " \t\n");
-        }
-        argv[argc] = NULL;
 
-        if (argc > 0 && (strcmp(argv[0], "exit") == 0 || strcmp(argv[0], "quit") == 0)) {
-            break;
+        if (dup2(out_fd, STDOUT_FILENO) < 0) {
+            perror("Failed to redirect output");
+            close(out_fd);
+            exit(EXIT_FAILURE);
         }
-        handle_command(argc, argv);
+        close(out_fd);
+
+        if (strchr(command, '|') != NULL) {
+            handle_pipes(command);
+        } else {
+            handle_command(argc - 2, args);
+        }
+
+        exit(EXIT_FAILURE);
+    } else {
+        wait(NULL);
     }
 
     return 0;

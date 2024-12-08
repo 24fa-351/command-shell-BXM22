@@ -1,26 +1,38 @@
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <fcntl.h>
-
-#include "shell_functions.h"
-
 #define MAX_INPUT_SIZE 1024
-#define MAX_PATH_SIZE 1024
+#define MAX_TOKENS 100
 
+
+//redirect
 void parse_arguments(const char *input, char **args) {
     int i = 0;
     char *token = strtok(strdup(input), " ");
+    printf("Parsing arguments:\n"); // Debug
     while (token != NULL) {
         args[i++] = token;
+        printf("Token[%d]: %s\n", i - 1, token); // Debug
         token = strtok(NULL, " ");
     }
     args[i] = NULL;
+    printf("Finished parsing arguments.\n"); // Debug
 }
 
+
+void execute_command(char **args) {
+    if (execvp(args[0], args) < 0) {
+        perror("Command execution failed");
+        exit(EXIT_FAILURE);
+    }
+}
+
+//cmd
 void handle_redirection(char **args) {
+    printf("Handling redirection...\n"); // Debug
     int in_fd = -1, out_fd = -1;
     char *input_file = NULL;
     char *output_file = NULL;
@@ -36,6 +48,7 @@ void handle_redirection(char **args) {
     }
 
     if (input_file) {
+        printf("Redirecting input from file: %s\n", input_file); // Debug
         in_fd = open(input_file, O_RDONLY);
         if (in_fd < 0) {
             perror("Failed to open input file");
@@ -49,6 +62,7 @@ void handle_redirection(char **args) {
     }
 
     if (output_file) {
+        printf("Redirecting output to file: %s\n", output_file); // Debug
         out_fd = open(output_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
         if (out_fd < 0) {
             perror("Failed to open output file");
@@ -61,6 +75,7 @@ void handle_redirection(char **args) {
         close(out_fd);
     }
 }
+
 
 void handle_pipes(char *command) {
     char *cmds[2];
@@ -106,39 +121,17 @@ void handle_pipes(char *command) {
     wait(NULL);
 }
 
-void execute_command(char **args) {
+
+
+void handle_command(int argc, char *args[]) {
+    printf("Running command: %s\n", args[0]);  // Debugging line
+    for (int i = 0; args[i] != NULL; i++) {
+        printf("Argument %d: %s\n", i, args[i]);  // Debugging line
+    }
+
     if (execvp(args[0], args) < 0) {
-        perror("Command execution failed");
+        perror("execvp failed");
         exit(EXIT_FAILURE);
     }
 }
 
-void handle_command(int argc, char *argv[]) {
-    if (argc < 1) {
-        fprintf(stderr, "No command provided.\n");
-        return;
-    }
-
-    char *args[MAX_INPUT_SIZE];
-    parse_arguments(argv[0], args);
-
-    for (int i = 0; args[i] != NULL; i++) {
-        if (strcmp(args[i], "<") == 0 || strcmp(args[i], ">") == 0) {
-            handle_redirection(args); 
-            break;
-        }
-    }
-
-    if (strchr(argv[0], '|') != NULL) {
-        handle_pipes(argv[0]);
-        return;
-    }
-
-    pid_t pid = fork();
-    if (pid == 0) {
-        execute_command(args); 
-        wait(NULL);
-    } else {
-        perror("Fork failed");
-    }
-}

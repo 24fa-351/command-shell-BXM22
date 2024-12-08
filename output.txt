@@ -1,0 +1,7 @@
+total 104
+-rw-r--r--  1 brennenmeregillano  staff   1250 Dec  4 21:15 README.md
+-rw-r--r--  1 brennenmeregillano  staff      0 Dec  8 15:34 output.txt
+-rwxr-xr-x  1 brennenmeregillano  staff  34536 Dec  8 15:34 shell
+-rw-r--r--@ 1 brennenmeregillano  staff   1330 Dec  8 15:29 shell.c
+-rw-r--r--@ 1 brennenmeregillano  staff   3403 Dec  8 15:33 shell_functions.c
+-rw-r--r--  1 brennenmeregillano  staff    230 Dec  8 15:29 shell_functions.h
