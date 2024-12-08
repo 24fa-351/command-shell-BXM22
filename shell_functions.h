@@ -3,6 +3,8 @@
 
 
 void run_comandline(void);
+void handle_command(int argc, char *argv[]);
+
 
 
 #endif

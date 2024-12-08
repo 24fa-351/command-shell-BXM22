@@ -9,7 +9,6 @@
 
 int main(int argc, char *argv[])
 {
-  run_comandline();
-
+  handle_command(argc - 1, &argv[1]);
   return EXIT_SUCCESS;
 }
