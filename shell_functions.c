@@ -9,19 +9,6 @@
 #define MAX_PATH_SIZE 1024
 
 
-void run_comandline(void){
-    char input[MAX_INPUT_SIZE];
-
-    while (1) {
-        if (fgets(input, sizeof(input), stdin) == NULL) {
-            break;
-        }
-        input[strcspn(input, "\n")] = '\0';
-        if (strcmp(input, "quit") == 0 || strcmp(input, "exit") == 0) {
-            break;
-        }
-    }
-}
 
 void handle_command(int argc, char *argv[]){
     if (argc < 1) {
@@ -66,22 +53,37 @@ void handle_command(int argc, char *argv[]){
     else if (strcmp(argv[0], "echo") == 0) {
         char buffer[MAX_INPUT_SIZE] = {0};
         for (int i = 1; i < argc; i++) {
-            if (argv[i][0] == '$') {
-                char *var_name = argv[i] + 1; // Skip the '$'
-                char *value = getenv(var_name);
-                if (value) {
+        if (argv[i][0] == '$') {
+            char *var_name = argv[i] + 1; // Skip the '$'
+            char *value = getenv(var_name);
+            if (value) {
+                if (strlen(buffer) + strlen(value) + 1 < MAX_INPUT_SIZE) {
                     strcat(buffer, value);
+                } else {
+                    fprintf(stderr, "echo: buffer overflow\n");
+                    return;
                 }
             } else {
-                strcat(buffer, argv[i]);
+                // Leave placeholder or empty space if the variable doesn't exist
+                if (strlen(buffer) + 1 < MAX_INPUT_SIZE) {
+                    strcat(buffer, " ");
+                } else {
+                    fprintf(stderr, "echo: buffer overflow\n");
+                    return;
+                }
             }
-            if (i < argc - 1) {
-                strcat(buffer, " ");
+        } else {
+            if (strlen(buffer) + strlen(argv[i]) + 1 < MAX_INPUT_SIZE) {
+                strcat(buffer, argv[i]);
+            } else {
+                fprintf(stderr, "echo: buffer overflow\n");
+                return;
             }
         }
-        printf("%s\n", buffer);
+        if (i < argc - 1) {
+            strcat(buffer, " ");
+        }
     }
-    else {
-        fprintf(stderr, "Unsupported command: %s\n", argv[0]);
-    }
+    printf("%s\n", buffer);
+}
 }
