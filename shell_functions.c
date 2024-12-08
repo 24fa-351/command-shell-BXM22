@@ -28,10 +28,10 @@ void handle_redirection(char **args) {
     for (int i = 0; args[i] != NULL; i++) {
         if (strcmp(args[i], "<") == 0) {
             input_file = args[i + 1];
-            args[i] = NULL;  // Remove the input redirection operator
+            args[i] = NULL; 
         } else if (strcmp(args[i], ">") == 0) {
             output_file = args[i + 1];
-            args[i] = NULL;  // Remove the output redirection operator
+            args[i] = NULL;  
         }
     }
 
@@ -124,7 +124,7 @@ void handle_command(int argc, char *argv[]) {
 
     for (int i = 0; args[i] != NULL; i++) {
         if (strcmp(args[i], "<") == 0 || strcmp(args[i], ">") == 0) {
-            handle_redirection(args); // Handle redirection here
+            handle_redirection(args); 
             break;
         }
     }
@@ -136,8 +136,7 @@ void handle_command(int argc, char *argv[]) {
 
     pid_t pid = fork();
     if (pid == 0) {
-        execute_command(args);  // Execute command after handling redirection
-    } else if (pid > 0) {
+        execute_command(args); 
         wait(NULL);
     } else {
         perror("Fork failed");
